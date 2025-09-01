@@ -1,0 +1,25 @@
+# Core Scientific Python
+numpy
+scipy
+pandas
+
+# Machine Learning
+torch
+xgboost
+scikit-learn
+
+# Experimentation & Configuration
+trackio
+pydantic
+PyYAML
+
+# Plotting
+matplotlib
+scienceplots
+
+# Time-Series Analysis
+statsmodels
+
+# Testing
+pytest
+pytest-cov
