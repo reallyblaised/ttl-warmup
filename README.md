@@ -8,10 +8,9 @@ To set up your Python environment using [uv](https://github.com/astral-sh/uv):
 	```
 
 2. **Activate the virtual environment:**
-	- On macOS/Linux:
-	  ```sh
-	  source .venv/bin/activate
-	  ```
+    ```sh
+    source .venv/bin/activate
+    ```
 
 3. **Install dependencies:**
 	```sh
