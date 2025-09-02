@@ -4,7 +4,7 @@ import torch.nn as nn
 from unittest.mock import MagicMock
 
 # Import the classes from the modules
-from toto.attention import (
+from src.toto.attention import (
     TimeWiseMultiheadAttention, 
     SpaceWiseMultiheadAttention, 
     BaseMultiheadAttention,
@@ -12,7 +12,7 @@ from toto.attention import (
     make_space_mask,
     AttentionAxis
 )
-from toto.embedding import RotaryEmbedding
+from src.toto.embedding import RotaryEmbedding
 
 @pytest.fixture
 def base_attention_time_axis():
@@ -22,14 +22,13 @@ def base_attention_time_axis():
     dropout = 0.1
     rotary_emb = MagicMock(spec=RotaryEmbedding)
     use_memory_efficient_attention = False
-    attention = BaseMultiheadAttention(
+    attention = TimeWiseMultiheadAttention(
         embed_dim,
         num_heads,
         dropout,
         rotary_emb,
         use_memory_efficient_attention,
     )
-    attention.attention_axis = AttentionAxis.TIME
     return attention
 
 @pytest.fixture
@@ -40,14 +39,14 @@ def base_attention_space_axis():
     dropout = 0.1
     rotary_emb = MagicMock(spec=RotaryEmbedding)
     use_memory_efficient_attention = False
-    attention = BaseMultiheadAttention(
+    attention = SpaceWiseMultiheadAttention(
         embed_dim,
         num_heads,
         dropout,
         rotary_emb,
         use_memory_efficient_attention,
     )
-    attention.attention_axis = AttentionAxis.SPACE
+    
     return attention
 
 

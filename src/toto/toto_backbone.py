@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn 
 
 
-from toto.embedding import PatchEmbedding
-from toto.scaler import Scaler
-from toto.toto_transformer import TotoTransformer
-from toto.unembedding import Unembed
+from src.toto.embedding import PatchEmbedding
+from src.toto.scaler import Scaler
+from src.toto.toto_transformer import TotoTransformer
+from src.toto.unembedding import Unembed
 
 class TotoBackbone(nn.Module):
     """

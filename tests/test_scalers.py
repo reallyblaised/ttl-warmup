@@ -4,8 +4,8 @@ import torch.nn as nn
 
 # Import the classes from the modules
 
-from toto.normalise import RMSNorm
-from toto.scaler import StdMeanScaler, CausalStdMeanScaler
+from src.toto.normalise import RMSNorm
+from src.toto.scaler import StdMeanScaler, CausalStdMeanScaler
 from tests.testing_data import test_data
 
 ## Scaler Tests ##

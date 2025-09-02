@@ -2,8 +2,8 @@ import pytest
 import torch
 import torch.nn as nn
 
-from toto.embedding import PatchEmbedding, RotaryEmbedding
-from toto.unembedding import Unembed
+from src.toto.embedding import PatchEmbedding, RotaryEmbedding
+from src.toto.unembedding import Unembed
 
 from tests.testing_data import test_data
 

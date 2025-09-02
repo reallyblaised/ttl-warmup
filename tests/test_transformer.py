@@ -1,8 +1,8 @@
 import torch
 import pytest
-from toto.toto_transformer import SwiGLU, TotoTransformerLayer, TotoTransformer
-from toto.attention import AttentionAxis, make_space_mask
-from toto.embedding import RotaryEmbedding
+from src.toto.toto_transformer import SwiGLU, TotoTransformerLayer, TotoTransformer
+from src.toto.attention import AttentionAxis, make_space_mask
+from src.toto.embedding import RotaryEmbedding
 
 # --- Fixtures ---
 @pytest.fixture

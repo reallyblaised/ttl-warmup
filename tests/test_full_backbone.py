@@ -1,5 +1,5 @@
-from toto.toto_backbone import TotoBackbone
-from toto.scaler import StdMeanScaler
+from src.toto.toto_backbone import TotoBackbone
+from src.toto.scaler import StdMeanScaler
 
 from tests.testing_data import test_data
 

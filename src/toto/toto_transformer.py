@@ -7,9 +7,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from toto.attention import AttentionAxis, TimeWiseMultiheadAttention, SpaceWiseMultiheadAttention, make_space_mask
-from toto.normalise import RMSNorm 
-from toto.embedding import RotaryEmbedding 
+from src.toto.attention import AttentionAxis, TimeWiseMultiheadAttention, SpaceWiseMultiheadAttention, make_space_mask
+from src.toto.normalise import RMSNorm 
+from src.toto.embedding import RotaryEmbedding 
 
 
 
@@ -62,7 +62,7 @@ class TotoTransformerLayer(nn.Module):
         num_heads: int,
         mlp_hidden_dim: int,
         dropout: float,
-        rotary_emb: RotaryEmbedding,
+        rotary_emb: RotaryEmbedding | None,
         attention_axis: AttentionAxis,
     ):
         super().__init__()
@@ -94,7 +94,7 @@ class TotoTransformerLayer(nn.Module):
             nn.Dropout(dropout)
         )
 
-    def forward(self, inputs: torch.Tensor, attention_mask: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, inputs: torch.Tensor, attention_mask: torch.Tensor | None = None) -> torch.Tensor:
         """
         Performs a forward pass through the transformer layer.
 

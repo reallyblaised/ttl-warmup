@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from enum import Enum
 
-from toto.embedding import RotaryEmbedding
+from src.toto.embedding import RotaryEmbedding
 
 ## Useful Enum ##
 ## ----------- ##
@@ -16,18 +16,6 @@ class AttentionAxis(Enum):
     """
     TIME = 1
     SPACE = 2
-
-## Mask Generator ##
-## -------------- ##
-
-def make_batched_block_mask(t: torch.Tensor) -> torch.Tensor:
-    """
-    Creates a batched block mask from a tensor of IDs.
-    The mask is True where IDs match, False otherwise.
-    """
-    unsqueezed = t.unsqueeze(-1)
-    return unsqueezed == unsqueezed.transpose(-1, -2)
-
 
 ## The core multiheaded attention mask ##
 ## ----------------------------------- ## 
@@ -84,7 +72,7 @@ class BaseMultiheadAttention(nn.Module):
     def forward(
         self,
         inputs: torch.Tensor,
-        attention_mask: torch.Tensor = None,
+        attention_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """
         The most important method.
@@ -99,6 +87,8 @@ class BaseMultiheadAttention(nn.Module):
 
         # Rearrange input tensor based on the attention axis
         rearranged_inputs = self._rearrange_inputs(inputs)
+        if rearranged_inputs is None:
+            raise TypeError('rearrange_inputs is None when it should be a tensor.')
 
         # Project input to Q, K, and V
         qkv = self.wQKV(rearranged_inputs)
