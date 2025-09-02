@@ -7,6 +7,7 @@ import seaborn as sns
 from datetime import datetime
 import warnings
 from pathlib import Path
+import scienceplots
 
 warnings.filterwarnings("ignore")
 
@@ -217,230 +218,241 @@ class BeijingPM25Explorer:
 
         return runs
 
-    # def plot_missing_patterns(self):
-    #     """Visualize missing data patterns"""
-    #     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    def generate_eda_plots(self, output_dir: str = "plots/eda"):
+        """
+        Generates and saves a series of professional-quality EDA plots.
+        Orchestrates all plotting sub-routines.
 
-    #     # 1. Missing data heatmap
-    #     missing_data = self.df.isnull()
-    #     key_cols = ["pm2.5", "TEMP", "PRES", "DEWP", "RAIN", "WSPM"]
-    #     available_cols = [col for col in key_cols if col in self.df.columns]
+        Args:
+            output_dir (str): The directory to save the plots.
+        """
+        # Ensure the output directory exists
+        plots_path = Path(output_dir)
+        plots_path.mkdir(parents=True, exist_ok=True)
 
-    #     if available_cols:
-    #         sns.heatmap(
-    #             missing_data[available_cols].head(1000),
-    #             yticklabels=False,
-    #             cbar=True,
-    #             ax=axes[0, 0],
-    #         )
-    #         axes[0, 0].set_title("Missing Data Patterns (First 1000 samples)")
+        # Use a professional plot style from SciencePlots for the entire block
+        with plt.style.context(["science", "ieee"]):
 
-    #     # 2. PM2.5 availability over time
-    #     if "pm2.5" in self.df.columns:
-    #         monthly_missing = self.df.groupby(
-    #             [self.df.index.year, self.df.index.month]
-    #         )["pm2.5"].apply(lambda x: x.isnull().sum())
-    #         monthly_missing.plot(kind="bar", ax=axes[0, 1])
-    #         axes[0, 1].set_title("PM2.5 Missing Data by Month")
-    #         axes[0, 1].set_xlabel("Year-Month")
-    #         axes[0, 1].tick_params(axis="x", rotation=45)
+            # Call the individual plotting functions
+            self._plot_missing_patterns(plots_path)
+            self._plot_basic_distributions(plots_path)
+            self._plot_temporal_patterns(plots_path)
 
-    #     # 3. Hourly missing patterns
-    #     if "pm2.5" in self.df.columns:
-    #         hourly_missing = self.df.groupby("hour")["pm2.5"].apply(
-    #             lambda x: x.isnull().mean()
-    #         )
-    #         hourly_missing.plot(kind="bar", ax=axes[1, 0])
-    #         axes[1, 0].set_title("PM2.5 Missing Rate by Hour")
-    #         axes[1, 0].set_xlabel("Hour of Day")
+        print(f"\nAll EDA plots saved as PDFs in the '{output_dir}' directory.")
 
-    #     # 4. Missing data correlation
-    #     missing_corr = missing_data[available_cols].corr() if available_cols else None
-    #     if missing_corr is not None:
-    #         sns.heatmap(
-    #             missing_corr, annot=True, cmap="coolwarm", center=0, ax=axes[1, 1]
-    #         )
-    #         axes[1, 1].set_title("Missing Data Correlation")
+    def _plot_missing_patterns(self, plots_path: Path):
+        """Visualizes missing data patterns and saves to PDF."""
+        print("Generating missing data patterns plot...")
+        fig, axes = plt.subplots(2, 2, figsize=(15, 10))
 
-    #     plt.tight_layout()
-    #     plt.show()
+        # 1.1. Missing data heatmap
+        missing_data = self.df.isnull()
+        key_cols_missing = ["pm2.5", "TEMP", "PRES", "DEWP", "RAIN", "WSPM"]
+        available_cols_missing = [
+            col for col in key_cols_missing if col in self.df.columns
+        ]
+        if available_cols_missing:
+            sns.heatmap(
+                missing_data[available_cols_missing].head(1000),
+                yticklabels=False,
+                cbar=True,
+                ax=axes[0, 0],
+                cmap="viridis",
+            )
+            axes[0, 0].set_title("Missing Data Patterns (First 1000 samples)")
 
-    # def plot_basic_distributions(self):
-    #     """Plot distributions of key variables"""
-    #     # Identify numeric columns
-    #     numeric_cols = self.df.select_dtypes(include=[np.number]).columns
-    #     key_vars = ["pm2.5", "TEMP", "PRES", "DEWP", "RAIN", "WSPM"]
-    #     available_vars = [col for col in key_vars if col in numeric_cols]
+        # 1.2. PM2.5 availability over time
+        if "pm2.5" in self.df.columns:
+            monthly_missing = (
+                self.df["pm2.5"].resample("M").apply(lambda x: x.isnull().sum())
+            )
+            monthly_missing.plot(kind="bar", ax=axes[0, 1])
+            axes[0, 1].set_title("PM2.5 Missing Data by Month")
+            axes[0, 1].set_xlabel("Year-Month")
+            axes[0, 1].tick_params(axis="x", rotation=45)
 
-    #     if not available_vars:
-    #         print("No key variables found for plotting")
-    #         return
+        # 1.3. Hourly missing patterns
+        if "pm2.5" in self.df.columns:
+            hourly_missing = self.df.groupby(self.df.index.hour)["pm2.5"].apply(
+                lambda x: x.isnull().mean()
+            )
+            hourly_missing.plot(kind="bar", ax=axes[1, 0])
+            axes[1, 0].set_title("PM2.5 Missing Rate by Hour")
+            axes[1, 0].set_xlabel("Hour of Day")
 
-    #     n_vars = len(available_vars)
-    #     n_cols = min(3, n_vars)
-    #     n_rows = (n_vars + n_cols - 1) // n_cols
+        # 1.4. Missing data correlation
+        if available_cols_missing:
+            missing_corr = missing_data[available_cols_missing].corr()
+            sns.heatmap(
+                missing_corr, annot=True, cmap="coolwarm", center=0, ax=axes[1, 1]
+            )
+            axes[1, 1].set_title("Missing Data Correlation")
 
-    #     fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 5 * n_rows))
-    #     if n_rows == 1:
-    #         axes = [axes] if n_cols == 1 else axes
-    #     else:
-    #         axes = axes.flatten()
+        plt.tight_layout()
+        plt.savefig(plots_path / "missing_data_patterns.pdf", bbox_inches="tight")
+        plt.close(fig)
 
-    #     for i, col in enumerate(available_vars):
-    #         data = self.df[col].dropna()
+    def _plot_basic_distributions(self, plots_path: Path):
+        """Plots distributions of key variables and saves to PDF."""
+        print("Generating key variable distributions plot...")
+        numeric_cols = self.df.select_dtypes(include=[np.number]).columns
+        key_vars_dist = ["pm2.5", "TEMP", "PRES", "DEWP", "RAIN", "WSPM"]
+        available_vars_dist = [col for col in key_vars_dist if col in numeric_cols]
 
-    #         axes[i].hist(data, bins=50, alpha=0.7, edgecolor="black")
-    #         axes[i].set_title(f"{col} Distribution")
-    #         axes[i].set_xlabel(col)
-    #         axes[i].set_ylabel("Frequency")
+        if available_vars_dist:
+            n_vars = len(available_vars_dist)
+            n_cols = min(3, n_vars)
+            n_rows = (n_vars + n_cols - 1) // n_cols
+            fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 5 * n_rows))
 
-    #         # Add summary statistics
-    #         axes[i].axvline(
-    #             data.mean(),
-    #             color="red",
-    #             linestyle="--",
-    #             label=f"Mean: {data.mean():.2f}",
-    #         )
-    #         axes[i].axvline(
-    #             data.median(),
-    #             color="green",
-    #             linestyle="--",
-    #             label=f"Median: {data.median():.2f}",
-    #         )
-    #         axes[i].legend()
+            axes = axes.flatten() if n_vars > 1 else [axes]
 
-    #     # Hide unused subplots
-    #     for i in range(n_vars, len(axes)):
-    #         axes[i].set_visible(False)
+            for i, col in enumerate(available_vars_dist):
+                data = self.df[col].dropna()
+                axes[i].hist(data, bins=50, alpha=0.7, edgecolor="black")
+                axes[i].set_title(f"{col} Distribution")
+                axes[i].set_xlabel(col)
+                axes[i].set_ylabel("Frequency")
+                axes[i].axvline(
+                    data.mean(),
+                    color="red",
+                    linestyle="--",
+                    label=f"Mean: {data.mean():.2f}",
+                )
+                axes[i].axvline(
+                    data.median(),
+                    color="green",
+                    linestyle="--",
+                    label=f"Median: {data.median():.2f}",
+                )
+                axes[i].legend()
 
-    #     plt.tight_layout()
-    #     plt.show()
+            for i in range(n_vars, len(axes)):
+                axes[i].set_visible(False)
 
-    # def plot_temporal_patterns(self):
-    #     """Plot temporal patterns in PM2.5"""
-    #     if "pm2.5" not in self.df.columns:
-    #         print("PM2.5 column not found")
-    #         return
+            plt.tight_layout()
+            plt.savefig(plots_path / "variable_distributions.pdf", bbox_inches="tight")
+            plt.close(fig)
 
-    #     fig, axes = plt.subplots(3, 2, figsize=(15, 12))
+    def _plot_temporal_patterns(self, plots_path: Path):
+        """Plots temporal patterns in PM2.5 and saves to PDF."""
+        print("Generating temporal patterns plot...")
+        if "pm2.5" in self.df.columns and self.df.index.name == "datetime":
+            fig, axes = plt.subplots(3, 2, figsize=(15, 12))
 
-    #     # 1. Time series plot (sample)
-    #     sample_data = self.df["pm2.5"].iloc[: 24 * 30]  # First month
-    #     sample_data.plot(ax=axes[0, 0])
-    #     axes[0, 0].set_title("PM2.5 Time Series (First Month)")
-    #     axes[0, 0].set_ylabel("PM2.5 (μg/m³)")
+            # 1. Time series plot (sample)
+            sample_data = self.df["pm2.5"].iloc[: 24 * 30]
+            sample_data.plot(ax=axes[0, 0])
+            axes[0, 0].set_title("PM2.5 Time Series (First Month)")
+            axes[0, 0].set_ylabel("PM2.5 (μg/m³)")
 
-    #     # 2. Monthly average pattern
-    #     monthly_avg = self.df.groupby("month")["pm2.5"].mean()
-    #     monthly_avg.plot(kind="bar", ax=axes[0, 1])
-    #     axes[0, 1].set_title("Average PM2.5 by Month")
-    #     axes[0, 1].set_xlabel("Month")
-    #     axes[0, 1].tick_params(axis="x", rotation=0)
+            # 2. Monthly average pattern
+            monthly_avg = self.df.groupby(self.df.index.month)["pm2.5"].mean()
+            monthly_avg.plot(kind="bar", ax=axes[0, 1])
+            axes[0, 1].set_title("Average PM2.5 by Month")
+            axes[0, 1].set_xlabel("Month")
 
-    #     # 3. Hourly average pattern
-    #     hourly_avg = self.df.groupby("hour")["pm2.5"].mean()
-    #     hourly_avg.plot(kind="bar", ax=axes[1, 0])
-    #     axes[1, 0].set_title("Average PM2.5 by Hour")
-    #     axes[1, 0].set_xlabel("Hour")
-    #     axes[1, 0].tick_params(axis="x", rotation=0)
+            # 3. Hourly average pattern
+            hourly_avg = self.df.groupby(self.df.index.hour)["pm2.5"].mean()
+            hourly_avg.plot(kind="bar", ax=axes[1, 0])
+            axes[1, 0].set_title("Average PM2.5 by Hour")
+            axes[1, 0].set_xlabel("Hour")
 
-    #     # 4. Day of week pattern
-    #     if self.df.index.name == "datetime":
-    #         dow_avg = self.df.groupby(self.df.index.dayofweek)["pm2.5"].mean()
-    #         dow_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    #         dow_avg.index = dow_names
-    #         dow_avg.plot(kind="bar", ax=axes[1, 1])
-    #         axes[1, 1].set_title("Average PM2.5 by Day of Week")
-    #         axes[1, 1].tick_params(axis="x", rotation=45)
+            # 4. Day of week pattern
+            dow_avg = self.df.groupby(self.df.index.dayofweek)["pm2.5"].mean()
+            dow_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+            dow_avg.index = dow_names
+            dow_avg.plot(kind="bar", ax=axes[1, 1])
+            axes[1, 1].set_title("Average PM2.5 by Day of Week")
 
-    #     # 5. Yearly trend
-    #     yearly_avg = self.df.groupby("year")["pm2.5"].mean()
-    #     yearly_avg.plot(kind="line", marker="o", ax=axes[2, 0])
-    #     axes[2, 0].set_title("Average PM2.5 by Year")
-    #     axes[2, 0].set_xlabel("Year")
+            # 5. Yearly trend
+            yearly_avg = self.df.groupby(self.df.index.year)["pm2.5"].mean()
+            yearly_avg.plot(kind="line", marker="o", ax=axes[2, 0])
+            axes[2, 0].set_title("Average PM2.5 by Year")
+            axes[2, 0].set_xlabel("Year")
 
-    #     # 6. Cyclical feature validation
-    #     # Plot hour_sin vs hour_cos colored by actual hour
-    #     scatter = axes[2, 1].scatter(
-    #         self.df["hour_cos"],
-    #         self.df["hour_sin"],
-    #         c=self.df["hour"],
-    #         cmap="hsv",
-    #         alpha=0.1,
-    #     )
-    #     axes[2, 1].set_title("Cyclical Hour Encoding Validation")
-    #     axes[2, 1].set_xlabel("Hour Cosine")
-    #     axes[2, 1].set_ylabel("Hour Sine")
-    #     plt.colorbar(scatter, ax=axes[2, 1], label="Hour")
+            # 6. Cyclical feature validation
+            scatter = axes[2, 1].scatter(
+                self.df["hour_cos"],
+                self.df["hour_sin"],
+                c=self.df["hour"],
+                cmap="hsv",
+                alpha=0.1,
+            )
+            axes[2, 1].set_title("Cyclical Hour Encoding Validation")
+            axes[2, 1].set_xlabel("Hour Cosine")
+            axes[2, 1].set_ylabel("Hour Sine")
+            plt.colorbar(scatter, ax=axes[2, 1], label="Hour")
 
-    #     plt.tight_layout()
-    #     plt.show()
+            plt.tight_layout()
+            plt.savefig(plots_path / "temporal_patterns.pdf", bbox_inches="tight")
+            plt.close(fig)
 
-    # def suggest_missing_data_strategy(self):
-    #     """Suggest missing data handling strategy"""
-    #     print("\n" + "=" * 50)
-    #     print("MISSING DATA STRATEGY RECOMMENDATIONS")
-    #     print("=" * 50)
+    def suggest_missing_data_strategy(self):
+        """Suggest missing data handling strategy"""
+        print("\n" + "=" * 50)
+        print("MISSING DATA STRATEGY RECOMMENDATIONS")
+        print("=" * 50)
 
-    #     if self.missing_summary is None:
-    #         print("Run analyze_missing_data() first")
-    #         return
+        if self.missing_summary is None:
+            print("Run analyze_missing_data() first")
+            return
 
-    #     high_missing = self.missing_summary[
-    #         self.missing_summary["Missing_Percentage"] > 30
-    #     ]
-    #     medium_missing = self.missing_summary[
-    #         (self.missing_summary["Missing_Percentage"] > 5)
-    #         & (self.missing_summary["Missing_Percentage"] <= 30)
-    #     ]
-    #     low_missing = self.missing_summary[
-    #         (self.missing_summary["Missing_Percentage"] > 0)
-    #         & (self.missing_summary["Missing_Percentage"] <= 5)
-    #     ]
+        high_missing = self.missing_summary[
+            self.missing_summary["Missing_Percentage"] > 30
+        ]
+        medium_missing = self.missing_summary[
+            (self.missing_summary["Missing_Percentage"] > 5)
+            & (self.missing_summary["Missing_Percentage"] <= 30)
+        ]
+        low_missing = self.missing_summary[
+            (self.missing_summary["Missing_Percentage"] > 0)
+            & (self.missing_summary["Missing_Percentage"] <= 5)
+        ]
 
-    #     if len(high_missing) > 0:
-    #         print("HIGH MISSING (>30%):")
-    #         for col in high_missing.index:
-    #             print(f"  {col}: Consider dropping or external data sources")
+        if len(high_missing) > 0:
+            print("HIGH MISSING (>30%):")
+            for col in high_missing.index:
+                print(f"  {col}: Consider dropping or external data sources")
 
-    #     if len(medium_missing) > 0:
-    #         print("\nMEDIUM MISSING (5-30%):")
-    #         for col in medium_missing.index:
-    #             if "pm2.5" in col.lower():
-    #                 print(
-    #                     f"  {col}: Forward fill + interpolation for short gaps, exclude long gaps"
-    #                 )
-    #             else:
-    #                 print(
-    #                     f"  {col}: Seasonal/trend interpolation or model-based imputation"
-    #                 )
+        if len(medium_missing) > 0:
+            print("\nMEDIUM MISSING (5-30%):")
+            for col in medium_missing.index:
+                if "pm2.5" in col.lower():
+                    print(
+                        f"  {col}: Forward fill + interpolation for short gaps, exclude long gaps"
+                    )
+                else:
+                    print(
+                        f"  {col}: Seasonal/trend interpolation or model-based imputation"
+                    )
 
-    #     if len(low_missing) > 0:
-    #         print("\nLOW MISSING (<5%):")
-    #         for col in low_missing.index:
-    #             print(f"  {col}: Forward fill or linear interpolation")
+        if len(low_missing) > 0:
+            print("\nLOW MISSING (<5%):")
+            for col in low_missing.index:
+                print(f"  {col}: Forward fill or linear interpolation")
 
-    #     print("\nRecommended approach for PM2.5 forecasting:")
-    #     print("1. Forward fill gaps < 3 hours")
-    #     print("2. Linear interpolation for gaps 3-12 hours")
-    #     print("3. Exclude training samples with gaps > 12 hours")
-    #     print("4. Use meteorological features for longer gap imputation")
+        print("\nRecommended approach for PM2.5 forecasting:")
+        print("1. Forward fill gaps < 3 hours")
+        print("2. Linear interpolation for gaps 3-12 hours")
+        print("3. Exclude training samples with gaps > 12 hours")
+        print("4. Use meteorological features for longer gap imputation")
 
-    # def get_data_summary(self):
-    #     """Return comprehensive data summary"""
-    #     summary = {
-    #         "shape": self.df.shape,
-    #         "date_range": (
-    #             (self.df.index.min(), self.df.index.max())
-    #             if self.df.index.name == "datetime"
-    #             else None
-    #         ),
-    #         "missing_summary": self.missing_summary,
-    #         "numeric_columns": self.df.select_dtypes(
-    #             include=[np.number]
-    #         ).columns.tolist(),
-    #         "pm25_stats": (
-    #             self.df["pm2.5"].describe() if "pm2.5" in self.df.columns else None
-    #         ),
-    #     }
-    #     return summary
+    def get_data_summary(self):
+        """Return comprehensive data summary"""
+        summary = {
+            "shape": self.df.shape,
+            "date_range": (
+                (self.df.index.min(), self.df.index.max())
+                if self.df.index.name == "datetime"
+                else None
+            ),
+            "missing_summary": self.missing_summary,
+            "numeric_columns": self.df.select_dtypes(
+                include=[np.number]
+            ).columns.tolist(),
+            "pm25_stats": (
+                self.df["pm2.5"].describe() if "pm2.5" in self.df.columns else None
+            ),
+        }
+        return summary

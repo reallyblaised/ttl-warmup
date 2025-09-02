@@ -36,21 +36,19 @@ def main():
     # Generate visualizations
     print("\nGenerating visualizations...")
     try:
-        explorer.plot_missing_patterns()
-        explorer.plot_basic_distributions()
-        explorer.plot_temporal_patterns()
+        explorer.generate_eda_plots()
     except Exception as e:
         print(f"Warning: Plotting failed: {e}")
         print("Continuing with analysis...")
 
-    # # Get recommendations
-    # explorer.suggest_missing_data_strategy()
+    # Get recommendations
+    explorer.suggest_missing_data_strategy()
 
-    # # Save processed data for next steps
-    # processed_path = "data/processed/beijing_pm25_explored.pkl"
-    # os.makedirs("data/processed", exist_ok=True)
-    # df.to_pickle(processed_path)
-    # print(f"\nProcessed data saved to: {processed_path}")
+    # Save processed data for next steps
+    processed_path = "data/processed"
+    Path(processed_path).mkdir(parents=True, exist_ok=True)
+    df.to_pickle(f"{processed_path}/beijing_pm25_processed.pkl")
+    print(f"\nProcessed data saved to: {processed_path}/beijing_pm25_processed.pkl")
 
     return 0
 
