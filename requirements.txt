@@ -16,10 +16,20 @@ PyYAML
 # Plotting
 matplotlib
 scienceplots
+seaborn
 
 # Time-Series Analysis
 statsmodels
 
-# Testing
+# Logging
+loguru
+
+# Other Utilities
+tqdm 
+jupyter 
+jupyterlab
+
+# Testing and Development
 pytest
-pytest-cov
+black
+flake8
