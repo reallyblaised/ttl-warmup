@@ -274,8 +274,8 @@ def test_spacewise_attention_forward_pass():
     assert not torch.equal(output_a[:, 2:, :, :], output_b[:, 2:, :, :])
 
 
-    ## Time Attention Tests ##
-    ## -------------------- ##
+## Time Attention Tests ##
+## -------------------- ##`
 
 
 
@@ -345,6 +345,43 @@ def test_timewise_attention_forward_pass_causality(time_attention):
     # The output for the last time step should be different because its
     # input was modified.
     assert not torch.equal(output_a[:, :, -1, :], output_b[:, :, -1, :])
+
+
+def test_timewise_attention_forward_pass_causality_multivariate(time_attention):
+    """
+    Tests causality for a multivariate input to the time-wise attention.
+    
+    This verifies that changing a future time step of one variate does not affect
+    the output of other variates.
+    """
+    batch_size = 1
+    variate = 3  # Test with multiple variates
+    seq_len = 5
+    embed_dim = time_attention.embed_dim
+
+    # Create a base input tensor with multiple variates
+    inputs_a = torch.randn(batch_size, variate, seq_len, embed_dim)
+
+    # Pass the input through the attention module
+    output_a = time_attention.forward(inputs_a)
+
+    # Create a second input tensor where only the last time step of the first variate is changed.
+    inputs_b = inputs_a.clone()
+    inputs_b[:, 0, -1, :] = torch.randn_like(inputs_b[:, 0, -1, :])
+
+    # Pass the second input through the attention module
+    output_b = time_attention.forward(inputs_b)
+    
+    # Assert that the output for the *other* variates remains unchanged.
+    assert torch.equal(output_a[:, 1:, :, :], output_b[:, 1:, :, :])
+
+    # Assert that the output for the first variate up to the second-to-last
+    # time step is unchanged due to causality.
+    assert torch.equal(output_a[:, 0, :-1, :], output_b[:, 0, :-1, :])
+    
+    # Assert that the output for the last time step of the first variate has changed.
+    assert not torch.equal(output_a[:, 0, -1, :], output_b[:, 0, -1, :])
+
 
 
 

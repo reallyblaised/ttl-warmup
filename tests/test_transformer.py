@@ -120,6 +120,43 @@ def test_toto_transformer_time_attend_causality(toto_transformer_instance):
 
     # Assert that the output for the last time step is different
     assert not torch.equal(output_a[:, :, -1, :], output_b[:, :, -1, :])
+
+def test_toto_transformer_time_attend_causality_multivariate(toto_transformer_instance):
+    """
+    Tests that the time attention part of the TotoTransformer is causal
+    for a multivariate input (variate > 1).
+    
+    This test verifies that changing a future time step of one variate does not affect
+    the output of other variates or past time steps.
+    """
+    batch_size = 1
+    variate = 3  # Test with multiple variates
+    seq_len = 5
+    embed_dim = toto_transformer_instance.time_transformers[0].attention.embed_dim
+    
+    # Create a base input tensor with multiple variates
+    inputs_a = torch.randn(batch_size, variate, seq_len, embed_dim)
+    
+    # Pass input A through the time-wise attention layers
+    output_a = toto_transformer_instance._time_attend(inputs_a)
+    
+    # Create a second input B where only the last time step of the first variate is changed.
+    inputs_b = inputs_a.clone()
+    inputs_b[:, 0, -1, :] = torch.randn_like(inputs_b[:, 0, -1, :])
+    
+    # Pass input B through the time-wise attention layers
+    output_b = toto_transformer_instance._time_attend(inputs_b)
+    
+    # Assert that the output for the *other* variates (variates 1 and 2) remains unchanged.
+    assert torch.equal(output_a[:, 1:, :, :], output_b[:, 1:, :, :])
+    
+    # Assert that the output for the first variate up to the second-to-last
+    # time step is unchanged due to causality.
+    assert torch.equal(output_a[:, 0, :-1, :], output_b[:, 0, :-1, :])
+    
+    # Assert that the output for the last time step of the first variate has changed.
+    assert not torch.equal(output_a[:, 0, -1, :], output_b[:, 0, -1, :])
+
     
 def test_toto_transformer_space_attend_masking(toto_transformer_instance):
     """
