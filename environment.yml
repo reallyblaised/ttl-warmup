@@ -1,0 +1,10 @@
+name: toto
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - pytorch
+  - cpuonly
+  - torchaudio
+  - torchvision
+prefix: /opt/homebrew/anaconda3/envs/toto
