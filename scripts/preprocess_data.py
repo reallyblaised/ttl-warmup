@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))  # HACK
 
 from src.data.preprocessor import BeijingPM25Explorer
+from src.data.variate_plots import VariateVisualizer
 
 
 def main():
@@ -33,22 +34,20 @@ def main():
     # Analyze missing data
     missing_summary = explorer.analyze_missing_data()
 
-    # Generate visualizations
-    print("\nGenerating visualizations...")
-    try:
-        explorer.generate_eda_plots()
-    except Exception as e:
-        print(f"Warning: Plotting failed: {e}")
-        print("Continuing with analysis...")
+    # Get data summary
+    data_summary = explorer.get_data_summary()
+    print(f"\nData Summary: {data_summary}")
 
-    # Get recommendations
-    explorer.suggest_missing_data_strategy()
+    # Engage EDA by way of visualizing the variates
+    visualizer = VariateVisualizer(df)
+    visualizer.generate_comprehensive_report()
 
     # Save processed data for next steps
     processed_path = "data/processed"
+
     Path(processed_path).mkdir(parents=True, exist_ok=True)
-    df.to_pickle(f"{processed_path}/beijing_pm25_processed.pkl")
-    print(f"\nProcessed data saved to: {processed_path}/beijing_pm25_processed.pkl")
+    df.to_pickle(f"{processed_path}/beijing_pm25.pkl")
+    print(f"\nProcessed data saved to: {processed_path}/beijing_pm25.pkl")
 
     return 0
 
